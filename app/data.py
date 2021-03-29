@@ -48,7 +48,7 @@ class Order:
         self.engine = engine
         self.table = table
         self.id_col = 'order_id'
-        self.valid_cols = {'order_id', 'weight', 'region', 'delivery_hours'}
+        self.valid_cols = ['order_id', 'weight', 'region', 'delivery_hours']
 
     def insert_row(self, data: dict):
         with self.engine.connect() as con:
@@ -158,10 +158,10 @@ class Order:
                         .where(self.table.columns.order_id == order_id) \
                         .values(complete=True, complete_time=complete_time))
 
-    def get_existing_ids(self, courier_ids: tp.List[int]):
+    def get_existing_ids(self, order_ids: tp.List[int]):
         with self.engine.connect() as con:
             select = db.select(self.table.columns.courier_id) \
-                .where(self.table.columns.courier_id.in_(courier_ids))
+                .where(self.table.columns.order_id.in_(order_ids))
             existing_ids = con.execute(select).fetchall()
         return [el[0] for el in existing_ids]
 
@@ -171,7 +171,7 @@ class Courier:
         self.engine = engine
         self.table = table
         self.id_col = 'courier_id'
-        self.valid_cols = {'courier_id', 'courier_type', 'regions', 'working_hours'}
+        self.valid_cols = ['courier_id', 'courier_type', 'regions', 'working_hours']
 
     def insert_row(self, data: dict):
         with self.engine.connect() as con:
@@ -244,4 +244,4 @@ class Courier:
         # Return updated data
         updated_data = self.get_by_id(courier_id)
         return dict(zip(self.valid_cols,
-                        updated_data))
+                        list(updated_data)))

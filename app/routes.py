@@ -66,7 +66,12 @@ def post_orders():
         return jsonify({'validation_error': {
             'reason': 'No data given'
         }}), 400
-    all_ids = [elem['order_id'] for elem in request.json['data']]
+    try:
+        all_ids = [elem['order_id'] for elem in request.json['data']]
+    except KeyError:
+        return jsonify({'validation_error': {
+            'reason': 'Data is not valid'
+        }}), 400
 
     # Some non-obvious decision: nothing specified about handling duplicates
     # I decided to call a request non-valid if it contains already existing ids

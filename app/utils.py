@@ -57,7 +57,7 @@ def recalculate_orders(data: dict, orders: tp.List[dict]):
     return removed_orders
 
 
-def validate_keys(valid_cols: tp.Set[str], data: dict, raise_missing: bool = True, num: int = 4):
+def validate_keys(valid_cols: tp.List[str], data: dict, raise_missing: bool = True, num: int = 4):
     for key in data:
         if key not in valid_cols:
             raise ValueError
