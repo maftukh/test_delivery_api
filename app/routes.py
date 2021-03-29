@@ -42,6 +42,9 @@ def post_couriers():
 
 @app.route('/couriers/<int:courier_id>', methods=['PATCH'])
 def patch_couriers(courier_id: int):
+    """
+    Меняет информацию о курьере и освобождает заказы, которые он не сможет доставить при новых условиях
+    """
     if not request.json:
         return jsonify({'validation_error': {
             'reason': 'No data given'
@@ -92,6 +95,9 @@ def post_orders():
 
 @app.route('/orders/assign', methods=['POST'])
 def assign_orders():
+    """
+    Назначает курьеру все подходящие для него заказы
+    """
     if not request.json or 'courier_id' not in request.json:
         return jsonify({'validation_error': {
             'reason': 'No data given'
@@ -135,6 +141,9 @@ def complete_order():
 
 @app.route('/couriers/<int:courier_id>', methods=['GET'])
 def get_courier_info(courier_id: int):
+    """
+    Возвращает информацию о курьере, считает его заработок и рейтинг
+    """
     data = dict(Couriers.get_by_id(courier_id))
     completed_orders = Orders.get_courier_orders(courier_id=courier_id, completed=True)
     if completed_orders:

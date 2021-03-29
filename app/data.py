@@ -51,6 +51,9 @@ class Order:
         self.valid_cols = ['order_id', 'weight', 'region', 'delivery_hours']
 
     def insert_row(self, data: dict):
+        """
+        Добавляет строку в таблицу (с данными из аргумента)
+        """
         with self.engine.connect() as con:
             id = data[self.id_col]
             query = db.insert(self.table).values(order_id=data['order_id'],
@@ -63,6 +66,9 @@ class Order:
 
     @staticmethod
     def validate_data(data: dict):
+        """
+        Валидация входных данных
+        """
         if not isinstance(data['order_id'], int):
             raise ValueError
         if not is_valid_weight(data['weight']):
@@ -93,6 +99,10 @@ class Order:
         return ids, True
 
     def get_courier_orders(self, courier_id: int, completed: bool = False):
+        """
+        Возвращает список заказов, назначенных на курьера
+        Если completed = True, то возвращаются только уже доставленные заказы
+        """
         with self.engine.connect() as conn:
             if completed:
                 select = db.select(self.table) \
@@ -105,6 +115,9 @@ class Order:
         return data
 
     def cancel_orders(self, orders: tp.List[dict]):
+        """
+        Отменяет назначение курьеров на выбранные заказы
+        """
         with self.engine.connect() as con:
             query = self.table.update() \
                 .where(self.table.columns.order_id.in_(orders)) \
@@ -113,6 +126,9 @@ class Order:
             con.execute(query)
 
     def assign_courier(self, courier_id: int, courier_type: str, orders: tp.List[int]):
+        """
+        Назначает курьера на заказы
+        """
         assign_time = datetime.now(timezone.utc).astimezone()
 
         with self.engine.connect() as con:
@@ -126,6 +142,9 @@ class Order:
         return assign_time.isoformat()
 
     def orders_for_courier(self, courier: dict):
+        """
+        Находит заказы, подходящие для курьера по весу, региону и времени доставки
+        """
         regions = list(map(int, courier['regions'].split(',')))
         max_weight = weight_dict[courier['courier_type']]
         hours = courier['working_hours'].split(',')
@@ -145,6 +164,9 @@ class Order:
         return matching_orders, assign_time
 
     def validate_assignment(self, order_id: int, courier_id: int):
+        """
+        Валидирует выполнение заказа: был ли заказ назначен на нужного курьера
+        """
         with self.engine.connect() as con:
             resp = con.execute(self.table.select() \
                                .where(self.table.columns.order_id == order_id)).fetchone()
@@ -152,6 +174,9 @@ class Order:
             raise AssertionError
 
     def complete_order(self, order_id: int, complete_time: datetime):
+        """
+        Фиксирует выполнение заказа в базу
+        """
         complete_time = iso8601.parse_date(complete_time)
         with self.engine.connect() as con:
             con.execute(self.table.update()
@@ -159,6 +184,9 @@ class Order:
                         .values(complete=True, complete_time=complete_time))
 
     def get_existing_ids(self, order_ids: tp.List[int]):
+        """
+        Возвращает заказы из заданного списка, которые уже есть в базе
+        """
         with self.engine.connect() as con:
             select = db.select(self.table.columns.courier_id) \
                 .where(self.table.columns.order_id.in_(order_ids))
@@ -174,6 +202,9 @@ class Courier:
         self.valid_cols = ['courier_id', 'courier_type', 'regions', 'working_hours']
 
     def insert_row(self, data: dict):
+        """
+        Добавляет строку в таблицу (с данными из аргумента)
+        """
         with self.engine.connect() as con:
             id = data[self.id_col]
             query = db.insert(self.table).values(courier_id=data['courier_id'],
@@ -185,6 +216,9 @@ class Courier:
 
     @staticmethod
     def validate_data(data: dict):
+        """
+        Валидация входных данных
+        """
         if not isinstance(data['courier_id'], int):
             raise ValueError
         if not is_valid_type(data['courier_type']):
@@ -216,6 +250,9 @@ class Courier:
         return ids, True
 
     def get_by_id(self, courier_id: int):
+        """
+        Возвращает данные о курьере по его айди
+        """
         with self.engine.connect() as con:
             select = db.select(self.table) \
                 .where(self.table.columns.courier_id == courier_id)
@@ -223,6 +260,9 @@ class Courier:
         return data
 
     def get_existing_ids(self, courier_ids: tp.List[int]):
+        """
+        Возвращает айдишники из списка, которые уже есть в базе
+        """
         with self.engine.connect() as con:
             select = db.select(self.table.columns.courier_id) \
                 .where(self.table.columns.courier_id.in_(courier_ids))
@@ -230,6 +270,9 @@ class Courier:
         return [el[0] for el in existing_ids]
 
     def update_data(self, courier_id: int, data: dict):
+        """
+        Обновить информацию о курьере
+        """
         try:
             validate_keys(self.valid_cols, data, raise_missing=False)
         except ValueError:
