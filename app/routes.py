@@ -18,8 +18,12 @@ def post_couriers():
         return jsonify({'validation_error': {
             'reason': 'No data given'
         }}), 400
-    all_ids = [elem['courier_id'] for elem in request.json['data']]
-
+    try:
+        all_ids = [elem['courier_id'] for elem in request.json['data']]
+    except KeyError:
+        return jsonify({'validation_error': {
+            'reason': 'Data is not valid'
+        }}), 400
     # Some non-obvious decision: nothing specified about handling duplicates
     # I decided to call a request non-valid if it contains already existing ids
     existing_ids = Couriers.get_existing_ids(all_ids)
