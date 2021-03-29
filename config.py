@@ -1,1 +1,1 @@
-DATABASE_URI = 'sqlite:///certificates.sqlite'
+DATABASE_URI = 'sqlite:///slasti.db'
