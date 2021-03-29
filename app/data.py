@@ -1,8 +1,8 @@
-import iso8601
 import re
 from datetime import datetime, timezone
 import typing as tp
 
+import iso8601
 import sqlalchemy as db
 from sqlalchemy.engine import Engine
 
